@@ -19,12 +19,4 @@ export class ProductsController {
   addProduct(@Body() createProductDto: Omit<Product, 'id'>): Product {
     return this.productsService.create({ ...createProductDto });
   }
-
-  // @Patch(':id')
-  // updateProduct(
-  //   @Param('id') id: string,
-  //   @Body() updateProductDto: Omit<Product, 'id'>,
-  // ): Product {
-  //   return this.productsService.update(id, { ...updateProductDto });
-  // }
 }
