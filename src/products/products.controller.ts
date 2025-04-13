@@ -11,10 +11,6 @@ export class ProductsController {
     return this.productsService.findAll();
   }
 
-  @Get(':id')
-  getProduct(@Param('id') id: string): Product {
-    return this.productsService.findById(id);
-  }
   @Post()
   addProduct(@Body() createProductDto: Omit<Product, 'id'>): Product {
     return this.productsService.create({ ...createProductDto });
