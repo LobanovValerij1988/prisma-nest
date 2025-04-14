@@ -20,4 +20,33 @@ model Product {
   price       Float    @default(0.0) 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  @@map("products")
+}
+
+model User {
+  id        Int   @id @default(autoincrement())
+  userName  String   @db.VarChar(50)  @unique
+  email     String   @db.VarChar(100) @unique
+  passwordHash  String? @db.VarChar(255)
+  role      Role? @relation(fields: [roleId], references: [id])
+  roleId    Int? @default(1)
+  googleId String? @db.VarChar(255) @unique
+  createdAt DateTime @default(now())
+  @@map("users")
+}
+
+model Role {
+  id        Int   @id @default(autoincrement())
+  users     User[]
+  roleName  RoleType @unique
+  createdAt DateTime @default(now())
+  @@map("roles")
+}
+
+enum RoleType {
+  Guest
+  RegisteredUser
+  CustomerSupport
+  Moderator
+  Administrator
 }
