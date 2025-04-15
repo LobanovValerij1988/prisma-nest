@@ -1,47 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Product } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { CreateProductDto } from './dto/create.dto';
 
 @Injectable()
 export class ProductsService {
   constructor(private prisma: PrismaService) {}
 
-  async create({
-    name,
-    description,
-    price,
-  }: Pick<Product, 'name' | 'description' | 'price'>): Promise<Product> {
+  async create(dto: CreateProductDto): Promise<Product> {
+    const isCategoryExist = await this.prisma.category.findUnique({
+      where: {
+        id: dto.categoryId,
+      },
+    });
+    if (!isCategoryExist) {
+      throw new NotFoundException('category does not exist');
+    }
     const createdProduct = await this.prisma.product.create({
-      data: { name, description, price },
+      data: dto,
     });
     return createdProduct;
   }
 
-  async findAll(): Promise<Product[]> {
-    return await this.prisma.product.findMany();
-  }
-
-  async findOne(uuid: string): Promise<Product | null> {
-    return await this.prisma.product.findUnique({
-      where: { id: uuid },
+  async findAll() {
+    return await this.prisma.product.findMany({
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            moduleName: true,
+          },
+        },
+      },
     });
-  }
-
-  async update(
-    uuid: string,
-    data: Pick<Product, 'name' | 'description' | 'price'>,
-  ): Promise<Product> {
-    const updatedProduct = await this.prisma.product.update({
-      where: { id: uuid },
-      data,
-    });
-    return updatedProduct;
-  }
-
-  async delete(uuid: string): Promise<Product> {
-    const deletedProduct = await this.prisma.product.delete({
-      where: { id: uuid },
-    });
-    return deletedProduct;
   }
 }

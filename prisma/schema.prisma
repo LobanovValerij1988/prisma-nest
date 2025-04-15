@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,14 +8,37 @@ datasource db {
 }
 
 model Product {
-  id          String  @id @default(uuid())
-  name        String  @unique
-  description String?
-  price       Float    @default(0.0) 
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(255)
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  stock       Int     @default(0)
+  category    Category @relation(fields: [categoryId], references: [id])
+  categoryId  Int
+  isTombolaEligible Boolean? @default(false) 
+  isDigitalProduct Boolean? @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   @@map("products")
+  }
+
+
+model Category {
+  id           Int     @id @default(autoincrement())
+  moduleName   String  @db.VarChar(50)
+  name         String  @db.VarChar(100) @unique
+  isActive     Boolean? @default(true) 
+  products     Product[]
+  parentCategory     Category?  @relation("CategoryToCategory", fields: [parentCategoryId], references: [id])
+  childCategories    Category[] @relation("CategoryToCategory")
+  parentCategoryId Int? 
+  displayOrder  Int 
+  icon         String? @db.VarChar(255)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  @@map("categories")
 }
+
 
 model User {
   id        Int   @id @default(autoincrement())
@@ -33,6 +50,7 @@ model User {
   googleId String? @db.VarChar(255) @unique
   createdAt DateTime @default(now())
   @@map("users")
+  @@index([email], name: "idx_users_email")
 }
 
 model Role {
