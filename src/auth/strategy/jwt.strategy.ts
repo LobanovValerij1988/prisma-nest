@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 
@@ -22,18 +22,17 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: { sub: number; email: string }) {
-    const userRole = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         id: payload.sub,
       },
-      select: {
+      include: {
         role: true,
       },
     });
-    if (userRole?.role?.roleName !== 'Administrator') {
-      throw new ForbiddenException('access forbidden');
+    if (!user) {
+      throw new UnauthorizedException('not authorized');
     }
-
-    return { userId: payload.sub, email: payload.email };
+    return user;
   }
 }
